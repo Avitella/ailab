@@ -11,6 +11,26 @@
 namespace ailab {
 
 class generator_t {
+  struct stat_t {
+    size_t mutations_count;
+    size_t mutations_attempts;
+    size_t mutation_duplicate_count;
+    size_t mutation_duplicate_attempts;
+    double first_fitness_function;
+    double best_fitness_function;
+
+    stat_t() :
+        mutations_count(0),
+        mutations_attempts(0),
+        mutation_duplicate_count(0),
+        mutation_duplicate_attempts(0),
+        first_fitness_function(0),
+        best_fitness_function(0) {
+    }
+  };
+
+  mutable stat_t stat;
+
   config_t config;
   std::vector<topic_t> topics;
   std::vector<question_t> questions;
@@ -46,22 +66,32 @@ class generator_t {
 
   void mutation(std::vector<variants_t> &population, question_shaker_t const &shaker) const {
     size_t population_size = population.size();
-    for (size_t i = 0; i < population_size; ++i)
+    for (size_t i = 0; i < population_size; ++i) {
+      bool b = (1 + rand() % 100) <= 100 * config.mutation_duplicate_chance;
+      ++stat.mutation_duplicate_attempts;
+      if (b) {
+        population.push_back(population[i]);
+        ++stat.mutation_duplicate_count;
+      }
       for (size_t j = 0; j < population[i].size(); ++j)
         for (size_t k = 0; k < population[i][j].size(); ++k) {
           bool b = (1 + rand() % 100) <= 100 * config.mutation_chance;
+          ++stat.mutations_attempts;
           if (b) {
             size_t r = rand() % config.topics.size();
             population[i][j][k] = shaker.get_question(config.topics[r]);
+            ++stat.mutations_count;
           }
         }
+    }
   }
 
   void selection(std::vector<variants_t> &population) const noexcept {
     std::sort(population.begin(), population.end(), [] (variants_t const &a, variants_t const &b) -> bool {
       return a.calculate_fitness_function() > b.calculate_fitness_function();
     });
-    population.resize(config.population_size);
+    std::random_shuffle(population.begin() + config.population_size / 2, population.end());
+    population.resize(config.population_size + config.population_size / 2);
   }
 
   variants_t best(std::vector<variants_t> &population) const noexcept {
@@ -83,6 +113,7 @@ class generator_t {
     std::vector<variants_t> population = generate_population(shaker);
 
     variants_t result = best(population);
+    stat.best_fitness_function = stat.first_fitness_function = result.calculate_fitness_function();
 
     for (size_t current_time = 1; current_time <= config.life_time; ++current_time) {
       crossover(population);
@@ -93,8 +124,21 @@ class generator_t {
         std::cerr << current_time << '\t' << population.front().calculate_fitness_function() << std::endl;
 
       variants_t buf = best(population);
-      if (buf.calculate_fitness_function() > result.calculate_fitness_function())
+      if (buf.calculate_fitness_function() > result.calculate_fitness_function()) {
         result = buf;
+        stat.best_fitness_function = result.calculate_fitness_function();
+      }
+    }
+
+    if (config.stat_enabled) {
+      std::cerr << std::endl;
+      std::cerr << "stat.mutations_attempts = " << stat.mutations_attempts << std::endl;
+      std::cerr << "stat.mutations_count = " << stat.mutations_count << std::endl;
+      std::cerr << "stat.mutation_duplicate_attempts = " << stat.mutation_duplicate_attempts << std::endl;
+      std::cerr << "stat.mutations_duplicate_count = " << stat.mutation_duplicate_count << std::endl;
+      std::cerr << "stat.first_fitness_function = " << stat.first_fitness_function << std::endl;
+      std::cerr << "stat.best_fitness_function = " << stat.best_fitness_function << std::endl;
+      std::cerr << std::endl;
     }
 
     return result;

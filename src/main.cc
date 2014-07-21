@@ -57,9 +57,15 @@ int main(int argc, char *argv[]) {
     "life_time=",
     "popualtion_size=",
     "mutation_chance=",
-    "log_enabled=",
+    "log_enabled",
+    "stat_enabled",
     "variants_count=",
-    "questions_count="
+    "questions_count=",
+    "show_config",
+    "mutation_duplicate_chance=",
+    "show_topics_disabled",
+    "topics=",
+    "show_result_disabled"
   });
 
   ailab::config_t config(opts);
@@ -69,13 +75,19 @@ int main(int argc, char *argv[]) {
   std::vector<ailab::topic_t> topics = db.select_topics();
   std::vector<ailab::question_t> questions = db.select_questions();
   
-  write_topic_tree(topics, questions);
-
-  std::cout << std::endl << config << std::endl;
-
-  std::cout << "Введите идентификаторы тем через запятую: ";
+  if (opts.find("show_config") != opts.end())
+    std::cerr << config;
+  
   std::string s;
-  std::getline(std::cin, s);
+
+  if (opts.find("topics") == opts.end()) {
+    if (opts.find("show_topics_disabled") == opts.end())
+      write_topic_tree(topics, questions);
+    std::cout << "Введите идентификаторы тем через запятую: ";
+    std::getline(std::cin, s);
+  } else {
+    s = opts.at("topics");
+  }
 
   for (size_t i = 0; i < s.length(); ) {
     size_t j = i + 1;
@@ -88,12 +100,13 @@ int main(int argc, char *argv[]) {
   ailab::generator_t generator(config, topics, questions);
   ailab::variants_t variants = generator.generate();
 
-  for (size_t i = 0; i < variants.size(); ++i) {
-    std::cout << i + 1 << ": " << std::endl;
-    for (ailab::question_t const &q : variants[i]) {
-      std::cout << '\t' << q.get_question_id() << " : " << q.get_text() << std::endl;
+  if (opts.find("show_result_disabled") == opts.end())
+    for (size_t i = 0; i < variants.size(); ++i) {
+      std::cout << i + 1 << ": " << std::endl;
+      for (ailab::question_t const &q : variants[i]) {
+        std::cout << '\t' << q.get_question_id() << " : " << q.get_text() << std::endl;
+      }
     }
-  }
 
   return 0;
 }

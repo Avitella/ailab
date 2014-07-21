@@ -20,7 +20,7 @@ class variants_t {
       fitness(0),
       changed(true),
       config(config),
-      questions(config.questions_count) {
+      questions(config.variants_count) {
   }
 
   variants_t(variants_t const &v) noexcept :
@@ -84,7 +84,7 @@ class variants_t {
       size_t count = 1;
       for (size_t i = 1; i < questions_count; ++i)
         count += buffer[i] != buffer[i - 1];
-      fitness = questions.size() * double(count) * 10 / questions_count;
+      fitness = questions.size() * double(count) / questions_count;
     }
     {
       for (size_t i = 0; i < questions.size(); ++i) {
@@ -95,7 +95,7 @@ class variants_t {
         size_t count = 1;
         for (size_t j = 1; j < questions[i].size(); ++j)
           count += buffer[j] != buffer[j - 1];
-        fitness *= double(count) * 10 / questions[i].size();
+        fitness *= double(count) / questions[i].size();
       }
     }
     {
@@ -110,7 +110,7 @@ class variants_t {
       }
       y = y * y;
       double d = (x - y / questions_count) / questions_count; // D 
-      fitness *= questions.size() * (1 / (d + 1)) * 10;
+      fitness *= questions.size() * (1 / (d + 1));
     }
     {
       for (size_t i = 0; i < questions.size(); ++i) {
@@ -121,7 +121,7 @@ class variants_t {
         size_t count = 1;
         for (size_t j = 1; j < questions[i].size(); ++j)
           count += buffer[j] != buffer[j - 1];
-        fitness *= double(count) * 10 / questions[i].size();
+        fitness *= double(count) / questions[i].size();
       }
     }
     changed = false;
