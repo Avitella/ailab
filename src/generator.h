@@ -16,6 +16,7 @@ class generator_t {
     size_t mutations_attempts;
     size_t mutation_duplicate_count;
     size_t mutation_duplicate_attempts;
+    size_t tried_generate;
     double first_fitness_function;
     double best_fitness_function;
 
@@ -24,6 +25,7 @@ class generator_t {
         mutations_attempts(0),
         mutation_duplicate_count(0),
         mutation_duplicate_attempts(0),
+        tried_generate(0),
         first_fitness_function(0),
         best_fitness_function(0) {
     }
@@ -103,14 +105,27 @@ class generator_t {
     return population.front();
   }
 
+  bool good_result(variants_t const &v) const noexcept {
+    for (size_t i = 0; i < v.size(); ++i) {
+      std::unordered_set<size_t> counter;
+      for (size_t j = 0; j < v[i].size(); ++j)
+        counter.insert(v[i][j].get_question_id());
+      if (counter.size() < v[i].size())
+        return false;
+    }
+    return true;
+  }
+
  public:
-  generator_t(config_t const &config, std::vector<topic_t> const &topics, std::vector<question_t> const &questions) noexcept :
-      config(config),
+  generator_t(config_t const &cnf, std::vector<topic_t> const &topics, std::vector<question_t> const &questions) noexcept :
+      config(cnf),
       topics(topics),
       questions(questions) {
   }
 
   variants_t generate() {
+    ++stat.tried_generate;
+
     question_shaker_t shaker(topics, questions);
     std::vector<variants_t> population = generate_population(shaker);
 
@@ -132,18 +147,22 @@ class generator_t {
       }
     }
 
-    if (config.stat_enabled) {
-      std::cerr << std::endl;
-      std::cerr << "stat.mutations_attempts = " << stat.mutations_attempts << std::endl;
-      std::cerr << "stat.mutations_count = " << stat.mutations_count << std::endl;
-      std::cerr << "stat.mutation_duplicate_attempts = " << stat.mutation_duplicate_attempts << std::endl;
-      std::cerr << "stat.mutations_duplicate_count = " << stat.mutation_duplicate_count << std::endl;
-      std::cerr << "stat.first_fitness_function = " << stat.first_fitness_function << std::endl;
-      std::cerr << "stat.best_fitness_function = " << stat.best_fitness_function << std::endl;
-      std::cerr << std::endl;
+    if (good_result(result) || stat.tried_generate == config.try_generate) {
+      if (config.stat_enabled) {
+        std::cerr << std::endl;
+        std::cerr << "stat.tried_generate = " << stat.tried_generate << std::endl;
+        std::cerr << "stat.mutations_attempts = " << stat.mutations_attempts << std::endl;
+        std::cerr << "stat.mutations_count = " << stat.mutations_count << std::endl;
+        std::cerr << "stat.mutation_duplicate_attempts = " << stat.mutation_duplicate_attempts << std::endl;
+        std::cerr << "stat.mutation_duplicate_count = " << stat.mutation_duplicate_count << std::endl;
+        std::cerr << "stat.first_fitness_function = " << stat.first_fitness_function << std::endl;
+        std::cerr << "stat.best_fitness_function = " << stat.best_fitness_function << std::endl;
+        std::cerr << std::endl;
+      }
+      return result;
+    } else {
+      return generate();
     }
-
-    return result;
   }
 };
 

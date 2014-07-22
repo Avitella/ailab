@@ -126,6 +126,33 @@ class variants_t {
       x = sqrt(x);
       fitness += x;
     }
+    {
+      for (size_t i = 0; i < questions.size(); ++i) {
+        size_t buffer[questions[i].size()];
+        for (size_t j = 0; j < questions[i].size(); ++j)
+          buffer[j] = questions[i][j].get_select_id();
+        std::sort(buffer, buffer + questions[i].size());
+        size_t count = 1;
+        for (size_t j = 1; j < questions[i].size(); ++j)
+          count += buffer[j] != buffer[j - 1];
+        std::pair<size_t, size_t> counter[count];
+        ssize_t k = -1;
+        for (size_t j = 0; j < questions[i].size(); ++j) {
+          if (k == -1 || buffer[j] != counter[k].first) {
+            ++k;
+            counter[k].second = 0;
+          }
+          ++counter[k].second;
+        }
+        std::sort(counter, counter + count, [] (std::pair<size_t, size_t> const &a, std::pair<size_t, size_t> const &b) -> bool {
+          return a.second > b.second;
+        });
+        double x = 0;
+        for (size_t j = 1; j < count; ++j)
+          x += counter[j].second / counter[j - 1].second;
+        fitness += x;
+      }
+    }
     changed = false;
     return fitness;
   }
@@ -144,6 +171,10 @@ class variants_t {
 
   std::vector<question_t> &operator [] (size_t i) noexcept {
     changed = true;
+    return questions[i];
+  }
+
+  std::vector<question_t> const &operator [] (size_t i) const noexcept {
     return questions[i];
   }
 };

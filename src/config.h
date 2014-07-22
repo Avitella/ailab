@@ -7,6 +7,7 @@ namespace ailab {
 
 struct config_t {
   size_t life_time;
+  size_t try_generate;
   size_t population_size;
   double mutation_chance;
   double mutation_duplicate_chance;
@@ -20,10 +21,11 @@ struct config_t {
   std::vector<size_t> topics;
 
   config_t(size_t v_count = 8, size_t q_count = 8) noexcept :
-      life_time(500),
-      population_size(200),
-      mutation_chance(0.05),
-      mutation_duplicate_chance(0.5),
+      life_time(200),
+      try_generate(10),
+      population_size(100),
+      mutation_chance(0.01),
+      mutation_duplicate_chance(0.2),
       different_weight(0.8),
       log_enabled(false),
       stat_enabled(false),
@@ -52,6 +54,8 @@ struct config_t {
       mutation_duplicate_chance = std::stod(map.at("mutation_duplicate_chance"));
     if (map.find("different_weight") != map.end())
       different_weight = std::stod(map.at("different_weight"));
+    if (map.find("try_generate") != map.end())
+      try_generate = std::stod(map.at("try_generate"));
   }
 };
 
@@ -65,6 +69,7 @@ std::ostream& operator << (std::ostream& out, config_t const &config) {
   out << "config.variants_count = " << config.variants_count << std::endl;
   out << "config.questions_count = " << config.questions_count << std::endl;
   out << "config.different_weight = " << config.different_weight << std::endl;
+  out << "config.try_generate = " << config.try_generate << std::endl;
   out << "config.topics = ";
   for (size_t i = 0; i < config.topics.size(); ++i) {
     out << config.topics[i];

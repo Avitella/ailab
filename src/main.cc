@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
     "topics=",
     "different_weight=",
     "show_result_disabled",
-    "sort_result_disabled"
+    "sort_result_disabled",
+    "try_generate="
   });
 
   ailab::config_t config(opts);
