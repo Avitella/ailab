@@ -55,7 +55,7 @@ static void write_topic_tree(std::vector<ailab::topic_t> const &topics, std::vec
 int main(int argc, char *argv[]) {
   std::unordered_map<std::string, std::string> opts = ailab::getopt(argc, argv, {
     "life_time=",
-    "popualtion_size=",
+    "population_size=",
     "mutation_chance=",
     "log_enabled",
     "stat_enabled",
@@ -65,7 +65,6 @@ int main(int argc, char *argv[]) {
     "mutation_duplicate_chance=",
     "show_topics_disabled",
     "topics=",
-    "different_weight=",
     "show_result_disabled",
     "sort_result_disabled",
     "try_generate="
@@ -116,6 +115,9 @@ int main(int argc, char *argv[]) {
       static const std::string header = question_id + stick + topic_id + stick + select_id + stick + difficulty + stick + text;
       static const size_t length = header.length() + 1;
       
+      for (size_t i = 0; i < length; ++i)
+        std::cout << '-';
+      std::cout << std::endl;
       std::cout << header << std::endl;
       for (size_t i = 0; i < length; ++i)
         std::cout << '-';

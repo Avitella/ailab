@@ -11,7 +11,6 @@ struct config_t {
   size_t population_size;
   double mutation_chance;
   double mutation_duplicate_chance;
-  double different_weight;
   bool log_enabled;
   bool stat_enabled;
 
@@ -26,7 +25,6 @@ struct config_t {
       population_size(100),
       mutation_chance(0.01),
       mutation_duplicate_chance(0.2),
-      different_weight(0.8),
       log_enabled(false),
       stat_enabled(false),
       variants_count(v_count),
@@ -52,8 +50,6 @@ struct config_t {
       stat_enabled = true;
     if (map.find("mutation_duplicate_chance") != map.end())
       mutation_duplicate_chance = std::stod(map.at("mutation_duplicate_chance"));
-    if (map.find("different_weight") != map.end())
-      different_weight = std::stod(map.at("different_weight"));
     if (map.find("try_generate") != map.end())
       try_generate = std::stod(map.at("try_generate"));
   }
@@ -68,7 +64,6 @@ std::ostream& operator << (std::ostream& out, config_t const &config) {
   out << "config.stat_enabled = " << config.stat_enabled << std::endl;
   out << "config.variants_count = " << config.variants_count << std::endl;
   out << "config.questions_count = " << config.questions_count << std::endl;
-  out << "config.different_weight = " << config.different_weight << std::endl;
   out << "config.try_generate = " << config.try_generate << std::endl;
   out << "config.topics = ";
   for (size_t i = 0; i < config.topics.size(); ++i) {
