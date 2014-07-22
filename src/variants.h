@@ -177,6 +177,20 @@ class variants_t {
   std::vector<question_t> const &operator [] (size_t i) const noexcept {
     return questions[i];
   }
+
+  void try_fix(question_shaker_t &shaker) noexcept {
+    for (std::vector<question_t> &q : *this) {
+      std::sort(q.begin(), q.end(), [] (question_t const &a, question_t const &b) -> bool {
+        return a.get_question_id() < b.get_question_id();
+      });
+      for (size_t i = 1; i < q.size(); ++i) {
+        if (q[i].get_question_id() == q[i - 1].get_question_id()) {
+          size_t r = rand() % config.topics.size();
+          q[i - 1] = shaker.get_question(config.topics[r]);
+        }
+      }
+    }
+  }
 };
 
 }

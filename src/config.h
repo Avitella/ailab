@@ -24,7 +24,7 @@ struct config_t {
       try_generate(10),
       population_size(100),
       mutation_chance(0.01),
-      mutation_duplicate_chance(0.2),
+      mutation_duplicate_chance(0.03),
       log_enabled(false),
       stat_enabled(false),
       variants_count(v_count),

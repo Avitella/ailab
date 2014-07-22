@@ -105,6 +105,11 @@ class generator_t {
     return population.front();
   }
 
+  void try_fix(std::vector<variants_t> &population, question_shaker_t &shaker) const noexcept {
+    for (variants_t &v : population)
+      v.try_fix(shaker);
+  }
+
   bool good_result(variants_t const &v) const noexcept {
     for (size_t i = 0; i < v.size(); ++i) {
       std::unordered_set<size_t> counter;
@@ -134,11 +139,12 @@ class generator_t {
 
     for (size_t current_time = 1; current_time <= config.life_time; ++current_time) {
       crossover(population);
-      mutation(population, shaker);
       selection(population);
+      mutation(population, shaker);
+      try_fix(population, shaker);
       
       if (config.log_enabled)
-        std::cerr << current_time << '\t' << population.front().calculate_fitness_function() << std::endl;
+        std::cerr << current_time << '\t' << result.calculate_fitness_function() << std::endl;
 
       variants_t buf = best(population);
       if (buf.calculate_fitness_function() > result.calculate_fitness_function()) {
