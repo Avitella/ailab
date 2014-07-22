@@ -90,12 +90,12 @@ class variants_t {
       for (size_t i = 0; i < questions.size(); ++i) {
         size_t buffer[questions[i].size()];
         for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[j] = questions[i][j].get_question_id();
+          buffer[j] = questions[i][j].get_select_id();
         std::sort(buffer, buffer + questions[i].size());
         size_t count = 1;
         for (size_t j = 1; j < questions[i].size(); ++j)
           count += buffer[j] != buffer[j - 1];
-        fitness *= double(count) / questions[i].size();
+        fitness += double(count) / questions[i].size();
       }
     }
     {
@@ -110,19 +110,38 @@ class variants_t {
       }
       y = y * y;
       double d = (x - y / questions_count) / questions_count; // D 
-      fitness *= questions.size() * (1 / (d + 1));
+      fitness += questions.size() * (1 / (d + 1));
     }
     {
       for (size_t i = 0; i < questions.size(); ++i) {
         size_t buffer[questions[i].size()];
         for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[j] = questions[i][j].get_topic_id();
+          buffer[j] = questions[i][j].get_question_id();
         std::sort(buffer, buffer + questions[i].size());
         size_t count = 1;
         for (size_t j = 1; j < questions[i].size(); ++j)
           count += buffer[j] != buffer[j - 1];
-        fitness *= double(count) / questions[i].size();
+        fitness += double(count) / questions[i].size();
       }
+    }
+    {
+      size_t buffer[questions_count];
+      for (size_t i = 0; i < questions.size(); ++i)
+        for (size_t j = 0; j < questions[i].size(); ++j)
+          buffer[i * questions.front().size() + j] = questions[i][j].get_select_id();
+      double rate = 0;
+      for (size_t i = 0; i < questions_count; ++i)
+        rate += buffer[i] * buffer[i];
+      rate = sqrt(rate);
+      double x = 0, y = 0;
+      for (size_t i = 0; i < questions_count; ++i) {
+        x += buffer[i] * buffer[i];
+        y += buffer[i];
+      }
+      y = y * y;
+      double d = (x - y / questions_count) / questions_count; // D 
+      d /= rate;
+      fitness += config.different_weight * d;
     }
     changed = false;
     return fitness;

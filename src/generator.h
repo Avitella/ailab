@@ -44,6 +44,7 @@ class generator_t {
         for (size_t j = 0; j < config.questions_count; ++j) {
           size_t r = rand() % config.topics.size();
           result[k][i].push_back(shaker.get_question(config.topics[r]));
+          result[k][i].back().set_select_id(config.topics[r]);
         }
       }
     }
@@ -80,6 +81,7 @@ class generator_t {
           if (b) {
             size_t r = rand() % config.topics.size();
             population[i][j][k] = shaker.get_question(config.topics[r]);
+            population[i][j][k].set_select_id(config.topics[r]);
             ++stat.mutations_count;
           }
         }

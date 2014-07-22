@@ -65,7 +65,9 @@ int main(int argc, char *argv[]) {
     "mutation_duplicate_chance=",
     "show_topics_disabled",
     "topics=",
-    "show_result_disabled"
+    "different_weight=",
+    "show_result_disabled",
+    "sort_result_disabled"
   });
 
   ailab::config_t config(opts);
@@ -74,9 +76,6 @@ int main(int argc, char *argv[]) {
 
   std::vector<ailab::topic_t> topics = db.select_topics();
   std::vector<ailab::question_t> questions = db.select_questions();
-  
-  if (opts.find("show_config") != opts.end())
-    std::cerr << config;
   
   std::string s;
 
@@ -97,15 +96,54 @@ int main(int argc, char *argv[]) {
     i = j + 1;
   }
 
+  if (opts.find("show_config") != opts.end())
+    std::cerr << config;
+
   ailab::generator_t generator(config, topics, questions);
   ailab::variants_t variants = generator.generate();
 
   if (opts.find("show_result_disabled") == opts.end())
     for (size_t i = 0; i < variants.size(); ++i) {
-      std::cout << i + 1 << ": " << std::endl;
+      std::cout << i + 1 << std::endl;
+      if (opts.find("sort_result_disabled") == opts.end())
+        std::sort(variants[i].begin(), variants[i].end(), [] (ailab::question_t const &a, ailab::question_t const &b) -> bool {
+          return a.get_question_id() < b.get_question_id();
+        });
+      
+      static const std::string question_id = "QuestionID", topic_id = "TopicID", select_id = "SelectID", difficulty = "Difficulty", text = "Text";
+      static const std::string stick = " | ";
+      static const std::string header = question_id + stick + topic_id + stick + select_id + stick + difficulty + stick + text;
+      static const size_t length = header.length() + 1;
+      
+      std::cout << header << std::endl;
+      for (size_t i = 0; i < length; ++i)
+        std::cout << '-';
+      std::cout << std::endl;
+
       for (ailab::question_t const &q : variants[i]) {
-        std::cout << '\t' << q.get_question_id() << " : " << q.get_text() << std::endl;
+        std::string buf = std::to_string(q.get_question_id());
+        while (buf.length() < question_id.length())
+          buf += ' ';
+        buf += stick;
+        buf += std::to_string(q.get_topic_id());
+        while (buf.length() < question_id.length() + stick.length() + topic_id.length())
+          buf += ' ';
+        buf += stick;
+        buf += std::to_string(q.get_select_id());
+        while (buf.length() < question_id.length() + stick.length() + topic_id.length() + stick.length() + select_id.length())
+          buf += ' ';
+        buf += stick;
+        buf += std::to_string(q.get_difficulty());
+        while (buf.length() < question_id.length() + stick.length() + topic_id.length() + stick.length() + select_id.length() + stick.length() + difficulty.length())
+          buf += ' ';
+        buf += stick;
+        buf += q.get_text();
+        std::cout << buf << std::endl;
       }
+
+      for (size_t i = 0; i < length; ++i)
+        std::cout << '-';
+      std::cout << std::endl;
     }
 
   return 0;
