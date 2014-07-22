@@ -79,12 +79,24 @@ class variants_t {
       size_t buffer[questions_count];
       for (size_t i = 0; i < questions.size(); ++i)
         for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[i * questions.front().size() + j] = questions[i][j].get_question_id();
+          buffer[i * config.questions_count + j] = questions[i][j].get_question_id();
       std::sort(buffer, buffer + questions_count);
       size_t count = 1;
       for (size_t i = 1; i < questions_count; ++i)
         count += buffer[i] != buffer[i - 1];
-      fitness = questions.size() * double(count) / questions_count;
+      fitness = double(count) / questions_count;
+    }
+    {
+      for (size_t i = 0; i < questions.size(); ++i) {
+        size_t buffer[questions[i].size()];
+        for (size_t j = 0; j < questions[i].size(); ++j)
+          buffer[j] = questions[i][j].get_question_id();
+        std::sort(buffer, buffer + questions[i].size());
+        size_t count = 1;
+        for (size_t j = 1; j < questions[i].size(); ++j)
+          count += buffer[j] != buffer[j - 1];
+        fitness += count == questions[i].size();
+      }
     }
     {
       for (size_t i = 0; i < questions.size(); ++i) {
@@ -99,49 +111,20 @@ class variants_t {
       }
     }
     {
-      size_t buffer[questions_count];
+      double buffer[questions_count];
       for (size_t i = 0; i < questions.size(); ++i)
         for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[i * questions.front().size() + j] = questions[i][j].get_difficulty();
-      double x = 0, y = 0;
-      for (size_t i = 0; i < questions_count; ++i) {
-        x += buffer[i] * buffer[i];
-        y += buffer[i];
-      }
-      y = y * y;
-      double d = (x - y / questions_count) / questions_count; // D 
-      fitness += questions.size() * (1 / (d + 1));
-    }
-    {
-      for (size_t i = 0; i < questions.size(); ++i) {
-        size_t buffer[questions[i].size()];
-        for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[j] = questions[i][j].get_question_id();
-        std::sort(buffer, buffer + questions[i].size());
-        size_t count = 1;
-        for (size_t j = 1; j < questions[i].size(); ++j)
-          count += buffer[j] != buffer[j - 1];
-        fitness += double(count) / questions[i].size();
-      }
-    }
-    {
-      size_t buffer[questions_count];
-      for (size_t i = 0; i < questions.size(); ++i)
-        for (size_t j = 0; j < questions[i].size(); ++j)
-          buffer[i * questions.front().size() + j] = questions[i][j].get_select_id();
-      double rate = 0;
+          buffer[i * config.questions_count + j] = questions[i][j].get_difficulty();
+      double avg = 0;
       for (size_t i = 0; i < questions_count; ++i)
-        rate += buffer[i] * buffer[i];
-      rate = sqrt(rate);
-      double x = 0, y = 0;
-      for (size_t i = 0; i < questions_count; ++i) {
-        x += buffer[i] * buffer[i];
-        y += buffer[i];
-      }
-      y = y * y;
-      double d = (x - y / questions_count) / questions_count; // D 
-      d /= rate;
-      fitness += config.different_weight * d;
+        avg += buffer[i];
+      avg /= questions_count;
+      double x = 0;
+      for (size_t i = 0; i < questions_count; ++i)
+        x += (buffer[i] - avg) * (buffer[i] - avg);
+      x /= questions_count;
+      x = sqrt(x);
+      fitness += x;
     }
     changed = false;
     return fitness;
