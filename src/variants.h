@@ -135,7 +135,7 @@ class variants_t {
       questions_count += v.size();
     size_t to_swap = rand() % questions_count;
     for (size_t i = 0; i < result.questions.size() && to_swap; ++i)
-      for (size_t j = 0; j < result.questions.size() && to_swap; ++j, --to_swap)
+      for (size_t j = 0; j < result.questions[i].size() && to_swap; ++j, --to_swap)
         result.questions[i][j] = v.questions[i][j];
     return result;
   }
