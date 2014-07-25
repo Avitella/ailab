@@ -53,7 +53,9 @@ class question_shaker_t {
     if (questions.at(topic_id).empty())
       throw exception_t("Not enough questions for topic: %lu, %s", topic_id, topics.at(topic_id).get_text().c_str());
     size_t r = rand() % questions.at(topic_id).size();
-    return questions.at(topic_id)[r];
+    question_t result = questions.at(topic_id)[r];
+    result.set_select_id(topic_id);
+    return result;
   }
 };
 

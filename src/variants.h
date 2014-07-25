@@ -187,7 +187,6 @@ class variants_t {
         if (q[i].get_question_id() == q[i - 1].get_question_id()) {
           size_t r = rand() % config.topics.size();
           q[i - 1] = shaker.get_question(config.topics[r]);
-          q[i - 1].set_select_id(config.topics[r]);
         }
       }
     }
