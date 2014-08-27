@@ -1,5 +1,6 @@
 env = Environment()
 
+env.Append(CPP = ["g++"])
 env.Append(CXXFLAGS = ["-std=c++0x", "-O3"])
 env.Append(CXXFLAGS = ["-Wall", "-W", "-g"])
 
