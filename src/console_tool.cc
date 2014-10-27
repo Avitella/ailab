@@ -52,8 +52,30 @@ static void write_topic_tree(std::vector<ailab::topic_t> const &topics, std::vec
   dfs_topic_tree(0, graph, used, mapping, questions_count);
 }
 
+void write_usage(std::vector<std::string> const &opts) {
+  std::cout << "OPTIONS:" << std::endl;
+  for (std::string const &opt : opts) {
+    std::cout << "  ";
+    if (opt[opt.length() - 1] == '=') {
+      std::string str = opt.substr(0, opt.length() - 1);
+      if (str.length() > 1) {
+        std::cout << "--" << str << " [ARG]" << std::endl;
+      } else {
+        std::cout << "-" << str << " [ARG]" << std::endl;
+      }
+    } else {
+      std::string str = opt;
+      if (str.length() > 1) {
+        std::cout << "--" << str << std::endl;
+      } else {
+        std::cout << "-" << str << std::endl;
+      }
+    }
+  }
+}
+
 int main(int argc, char *argv[]) {
-  std::unordered_map<std::string, std::string> opts = ailab::getopt(argc, argv, {
+  std::vector<std::string> opt_strs = {
     "life_time=",
     "population_size=",
     "mutation_chance=",
@@ -67,8 +89,18 @@ int main(int argc, char *argv[]) {
     "topics=",
     "show_result_disabled",
     "sort_result_disabled",
-    "try_generate="
-  });
+    "try_generate=",
+    "tsv",
+    "help",
+    "h"
+  };
+
+  std::unordered_map<std::string, std::string> opts = ailab::getopt(argc, argv, opt_strs);
+
+  if (opts.find("h") != opts.end() || opts.find("help") != opts.end()) {
+    write_usage(opt_strs);
+    return 0;
+  }
 
   ailab::config_t config(opts);
 
@@ -101,6 +133,17 @@ int main(int argc, char *argv[]) {
 
   ailab::generator_t generator(config, topics, questions);
   ailab::variants_t variants = generator.generate();
+
+  if (opts.find("tsv") != opts.end()) {
+    std::cout << "Variant\tQuestionID\tText\tifficulty" << std::endl;
+    for (size_t i = 0; i < variants.size(); ++i) {
+      for (ailab::question_t const &q : variants[i]) {
+        std::cout << i + 1 << '\t' << q.get_question_id() << '\t' << q.get_text() << '\t' << q.get_difficulty() << '\n';
+      }
+    }
+
+    return 0;
+  }
 
   if (opts.find("show_result_disabled") == opts.end())
     for (size_t i = 0; i < variants.size(); ++i) {
