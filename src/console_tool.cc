@@ -76,23 +76,30 @@ void write_usage(std::vector<std::string> const &opts) {
 
 int main(int argc, char *argv[]) {
   std::vector<std::string> opt_strs = {
-    "life_time=",
-    "population_size=",
-    "mutation_chance=",
-    "log_enabled",
-    "stat_enabled",
-    "variants_count=",
-    "questions_count=",
-    "show_config",
-    "mutation_duplicate_chance=",
-    "show_topics_disabled",
-    "topics=",
-    "show_result_disabled",
-    "sort_result_disabled",
-    "try_generate=",
-    "tsv",
+    "h",
     "help",
-    "h"
+    "life-time=",
+    "log-enabled",
+    "mutation-chance=",
+    "mutation-duplicate-chance=",
+    "population-size=",
+    "question-id-field=",
+    "questions-count=",
+    "show-config",
+    "show-result-disabled",
+    "show-topics-disabled",
+    "shuffle-result",
+    "sort-result-disabled",
+    "sql",
+    "stat-enabled",
+    "topics=",
+    "try-generate=",
+    "tsv",
+    "variant-id-field=",
+    "variants-count=",
+    "variants-first-index=",
+    "variants-first-index=",
+    "variants-table="
   };
 
   std::unordered_map<std::string, std::string> opts = ailab::getopt(argc, argv, opt_strs);
@@ -100,6 +107,15 @@ int main(int argc, char *argv[]) {
   if (opts.find("h") != opts.end() || opts.find("help") != opts.end()) {
     write_usage(opt_strs);
     return 0;
+  }
+
+  if (opts.find("variants-first-index") == opts.end()) {
+    opts["variants-first-index"] = "1";
+  }
+
+  if (opts.find("sql") != opts.end() &&
+      (opts.find("variants-table") == opts.end() || opts.find("variant-id-field") == opts.end() || opts.find("question-id-field") == opts.end())) {
+    throw ailab::exception_t("try to use sql option without sql options");
   }
 
   ailab::config_t config(opts);
@@ -112,7 +128,7 @@ int main(int argc, char *argv[]) {
   std::string s;
 
   if (opts.find("topics") == opts.end()) {
-    if (opts.find("show_topics_disabled") == opts.end())
+    if (opts.find("show-topics-disabled") == opts.end())
       write_topic_tree(topics, questions);
     std::cout << "Введите идентификаторы тем через запятую: ";
     std::getline(std::cin, s);
@@ -128,7 +144,7 @@ int main(int argc, char *argv[]) {
     i = j + 1;
   }
 
-  if (opts.find("show_config") != opts.end())
+  if (opts.find("show-config") != opts.end())
     std::cerr << config;
 
   ailab::generator_t generator(config, topics, questions);
@@ -136,22 +152,47 @@ int main(int argc, char *argv[]) {
 
   if (opts.find("tsv") != opts.end()) {
     std::cout << "Variant\tQuestionID\tText\tifficulty" << std::endl;
+    size_t first_index = std::stol(opts["variants-first-index"]);
     for (size_t i = 0; i < variants.size(); ++i) {
       for (ailab::question_t const &q : variants[i]) {
-        std::cout << i + 1 << '\t' << q.get_question_id() << '\t' << q.get_text() << '\t' << q.get_difficulty() << '\n';
+        std::cout << i + first_index << '\t' << q.get_question_id() << '\t' << q.get_text() << '\t' << q.get_difficulty() << '\n';
       }
     }
 
     return 0;
   }
 
-  if (opts.find("show_result_disabled") == opts.end())
+  if (opts.find("sql") != opts.end()) {
+    size_t first_index = std::stol(opts["variants-first-index"]);
+    std::cout << "insert into " << opts["variants-table"] << " (" << opts["variant-id-field"] << ", " << opts["question-id-field"] << ") values " << std::endl;
     for (size_t i = 0; i < variants.size(); ++i) {
-      std::cout << i + 1 << std::endl;
-      if (opts.find("sort_result_disabled") == opts.end())
+      if (opts.find("shuffle-result") != opts.end()) {
+        std::random_shuffle(variants[i].begin(), variants[i].end());
+      }
+      for (size_t j = 0; j < variants[i].size(); ++j) {
+        ailab::question_t const &q = variants[i][j];
+        std::cout << "(" << first_index + i << ", " << q.get_question_id() << ")";
+        if (j + 1 == variants[i].size() && i + 1 == variants.size()) {
+          std::cout << ";" << std::endl;
+        } else {
+          std::cout << "," << std::endl;
+        }
+      }
+    }
+    return 0;
+  }
+
+  if (opts.find("show-result-disabled") == opts.end()) {
+    size_t first_index = std::stol(opts["variants-first-index"]);
+     
+    for (size_t i = 0; i < variants.size(); ++i) {
+      std::cout << i + first_index << std::endl;
+      if (opts.find("sort-result-disabled") == opts.end())
         std::sort(variants[i].begin(), variants[i].end(), [] (ailab::question_t const &a, ailab::question_t const &b) -> bool {
           return a.get_question_id() < b.get_question_id();
         });
+      if (opts.find("shuffle-result") != opts.end())
+        std::random_shuffle(variants[i].begin(), variants[i].end());
       
       static const std::string question_id = "QuestionID", topic_id = "TopicID", select_id = "SelectID", difficulty = "Difficulty", text = "Text";
       static const std::string stick = " | ";
@@ -191,6 +232,8 @@ int main(int argc, char *argv[]) {
         std::cout << '-';
       std::cout << std::endl;
     }
+
+  }
 
   return 0;
 }

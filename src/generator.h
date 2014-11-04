@@ -103,9 +103,9 @@ class generator_t {
     return population.front();
   }
 
-  void try_fix(std::vector<variants_t> &population, question_shaker_t &shaker) const noexcept {
+  void strong_mutation(std::vector<variants_t> &population, question_shaker_t &shaker) const noexcept {
     for (variants_t &v : population)
-      v.try_fix(shaker);
+      v.strong_mutation(shaker);
   }
 
   bool good_result(variants_t const &v) const noexcept {
@@ -139,7 +139,7 @@ class generator_t {
       crossover(population);
       selection(population);
       mutation(population, shaker);
-      try_fix(population, shaker);
+      strong_mutation(population, shaker);
       
       if (config.log_enabled)
         std::cerr << current_time << '\t' << result.calculate_fitness_function() << std::endl;

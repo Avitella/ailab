@@ -34,24 +34,24 @@ struct config_t {
 
   config_t(std::unordered_map<std::string, std::string> const &map) noexcept :
       config_t() {
-    if (map.find("life_time") != map.end())
-      life_time = std::stoul(map.at("life_time"));
-    if (map.find("population_size") != map.end())
-      population_size = std::stoul(map.at("population_size"));
-    if (map.find("mutation_chance") != map.end())
-      mutation_chance = std::stod(map.at("mutation_chance"));
-    if (map.find("log_enabled") != map.end())
+    if (map.find("life-time") != map.end())
+      life_time = std::stoul(map.at("life-time"));
+    if (map.find("population-size") != map.end())
+      population_size = std::stoul(map.at("population-size"));
+    if (map.find("mutation-chance") != map.end())
+      mutation_chance = std::stod(map.at("mutation-chance"));
+    if (map.find("log-enabled") != map.end())
       log_enabled = true;
-    if (map.find("variants_count") != map.end())
-      variants_count = std::stoul(map.at("variants_count"));
-    if (map.find("questions_count") != map.end())
-      questions_count = std::stoul(map.at("questions_count"));
-    if (map.find("stat_enabled") != map.end())
+    if (map.find("variants-count") != map.end())
+      variants_count = std::stoul(map.at("variants-count"));
+    if (map.find("questions-count") != map.end())
+      questions_count = std::stoul(map.at("questions-count"));
+    if (map.find("stat-enabled") != map.end())
       stat_enabled = true;
-    if (map.find("mutation_duplicate_chance") != map.end())
-      mutation_duplicate_chance = std::stod(map.at("mutation_duplicate_chance"));
-    if (map.find("try_generate") != map.end())
-      try_generate = std::stod(map.at("try_generate"));
+    if (map.find("mutation-duplicate-chance") != map.end())
+      mutation_duplicate_chance = std::stod(map.at("mutation-duplicate-chance"));
+    if (map.find("try-generate") != map.end())
+      try_generate = std::stod(map.at("try-generate"));
   }
 };
 

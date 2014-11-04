@@ -178,7 +178,7 @@ class variants_t {
     return questions[i];
   }
 
-  void try_fix(question_shaker_t &shaker) noexcept {
+  void strong_mutation(question_shaker_t const &shaker) noexcept {
     for (std::vector<question_t> &q : *this) {
       std::sort(q.begin(), q.end(), [] (question_t const &a, question_t const &b) -> bool {
         return a.get_question_id() < b.get_question_id();
