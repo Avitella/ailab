@@ -103,7 +103,7 @@ class generator_t {
     return population.front();
   }
 
-  void strong_mutation(std::vector<variants_t> &population, question_shaker_t &shaker) const noexcept {
+  void strong_mutation(std::vector<variants_t> &population, question_shaker_t const &shaker) const noexcept {
     for (variants_t &v : population)
       v.strong_mutation(shaker);
   }
