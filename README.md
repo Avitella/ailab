@@ -12,7 +12,7 @@ scons
 sudo apt-get install libmysqlclient-dev mysql-server mysql-client g++ scons
 
 ## Usage example:
-./bin/console-tool --variants_count=8 --questions_count=12 --mutation_chance=0.01 --population_size=200 --life_time=200 --mutation_duplicate_chance=0.02 --topics=6,50,47,423,43 --stat_enabled --show_config
+./bin/console-tool --variants-count=8 --questions-count=12 --mutation-chance=0.01 --population-size=200 --life-time=200 --mutation-duplicate_chance=0.02 --topics=6,50,47,423,43 --stat-enabled --show-config
     
 ## Command line args:
 OPTIONS:
