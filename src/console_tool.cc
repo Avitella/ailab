@@ -7,20 +7,27 @@
 #include <unordered_map>
 #include <unordered_set>
 
-template<typename graph_t, typename used_t, typename mapping_t, typename questions_count_t>
+template<typename graph_t, typename used_t, typename mapping_t, typename questions_count_t, typename questions_map_t>
 static void dfs_topic_tree(size_t u, graph_t const &graph, used_t &used, mapping_t const &mapping,
-    questions_count_t const &questions_count, size_t offset = 0) {
+    questions_count_t const &questions_count, questions_map_t const &q_map,
+    bool write_questions, size_t offset = 0) {
   used.insert(u);
   if (u != 0) {
     for (size_t i = 0; i + 1 < offset; ++i)
       std::cout << '\t';
     std::cout << mapping.at(u).get_topic_id() << " : " << mapping.at(u).get_text() << " (" << questions_count.at(u) << ")" << std::endl;
+    if (write_questions && q_map.find(u) != q_map.end())
+      for (std::string const text : q_map.at(u)) {
+        for (size_t i = 0; i < offset; ++i)
+          std::cout << '\t';
+        std::cout << "[# " << text << "]" << std::endl;
+      }
   }
   if (graph.find(u) == graph.end())
     return;
   for (size_t v : graph.at(u))
     if (used.find(v) == used.end())
-      dfs_topic_tree(v, graph, used, mapping, questions_count, offset + 1);
+      dfs_topic_tree(v, graph, used, mapping, questions_count, q_map, write_questions, offset + 1);
 }
 
 template<typename graph_t, typename used_t, typename questions_count_t>
@@ -34,10 +41,13 @@ static size_t dfs_questions_count(size_t u, graph_t const &graph, used_t &used, 
   return questions_count[u];
 }
 
-static void write_topic_tree(std::vector<ailab::topic_t> const &topics, std::vector<ailab::question_t> const &questions) {
+static void write_topic_tree(std::vector<ailab::topic_t> const &topics, std::vector<ailab::question_t> const &questions, bool write_questions) {
   std::unordered_map<size_t, ailab::topic_t> mapping;
   std::unordered_map<size_t, size_t> questions_count;
+  std::unordered_map<size_t, std::vector<std::string>> questions_map;
   std::unordered_map<size_t, std::vector<size_t>> graph;
+  for (auto const &q : questions)
+    questions_map[q.get_topic_id()].push_back(q.get_text());
   for (auto const &t : topics) {
     mapping[t.get_topic_id()] = t;
     questions_count[t.get_topic_id()] = 0;
@@ -49,7 +59,7 @@ static void write_topic_tree(std::vector<ailab::topic_t> const &topics, std::vec
   std::unordered_set<size_t> used;
   dfs_questions_count(0, graph, used, questions_count);
   used.clear();
-  dfs_topic_tree(0, graph, used, mapping, questions_count);
+  dfs_topic_tree(0, graph, used, mapping, questions_count, questions_map, write_questions);
 }
 
 void write_usage(std::vector<std::string> const &opts) {
@@ -99,7 +109,8 @@ int main(int argc, char *argv[]) {
     "variants-count=",
     "variants-first-index=",
     "variants-first-index=",
-    "variants-table="
+    "variants-table=",
+    "show-questions"
   };
 
   std::unordered_map<std::string, std::string> opts = ailab::getopt(argc, argv, opt_strs);
@@ -129,11 +140,16 @@ int main(int argc, char *argv[]) {
 
   if (opts.find("topics") == opts.end()) {
     if (opts.find("show-topics-disabled") == opts.end())
-      write_topic_tree(topics, questions);
+      write_topic_tree(topics, questions, opts.find("show-questions") != opts.end());
     std::cout << "Введите идентификаторы тем через запятую: ";
     std::getline(std::cin, s);
   } else {
     s = opts.at("topics");
+  }
+
+  if (s.empty()) {
+    std::cout << "Отсутствует список тем." << std::endl;
+    return 0;
   }
 
   for (size_t i = 0; i < s.length(); ) {
