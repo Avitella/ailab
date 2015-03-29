@@ -10,6 +10,7 @@
 #include "question.h"
 #include "exception.h"
 #include "topic.h"
+#include "answer.h"
 
 namespace ailab {
 
@@ -71,6 +72,32 @@ struct db_engine_t {
     }
 
     return questions;
+  }
+
+  std::vector<answer_t> select_answers() const {
+    std::vector<answer_t> answers;
+    
+    if (mysql_query(connection, "SELECT AnswerID, QuestionID, Correct, Text FROM Answer"))
+      throw exception_t("%s", mysql_error(connection));
+
+    MYSQL_RES *result = mysql_store_result(connection);
+    if (!result)
+      throw exception_t("%s", mysql_error(connection));
+    
+    MYSQL_ROW row = mysql_fetch_row(result);
+    
+    while (row) {
+      size_t answer_id = atoll(row[0]);
+      size_t question_id = atoll(row[1]);
+      bool correct = atoll(row[2]);
+      std::string text = row[3];
+    
+      answers.push_back(answer_t(answer_id, question_id, correct, text));
+
+      row = mysql_fetch_row(result);
+    }
+
+    return answers;
   }
 
   std::vector<topic_t> select_topics() const {
